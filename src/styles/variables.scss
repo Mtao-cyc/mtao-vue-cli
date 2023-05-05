@@ -1,0 +1,9 @@
+$menuBg:#304156;
+$menuText:#bfcbd9;
+$menuActiveText:#409EFF; // Also see settings.sidebarTextTheme
+
+:export {
+  menuBg: $menuBg;
+  menuText: $menuText;
+  menuActiveText: $menuActiveText;
+}
