@@ -1,4 +1,5 @@
 const path = require("path")
+const devServerConfig = require("./devServerConfig")
 const ESLintWebpackPlugin = require('eslint-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -8,7 +9,7 @@ const TerserWebpackPlugin = require("terser-webpack-plugin");//压缩js
 const { VueLoaderPlugin } = require('vue-loader');
 const { DefinePlugin } = require("webpack")
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");//压缩图片
-const CopyPlugin = require("copy-webpack-plugin");
+const WebpackBar = require('webpackbar')
 // const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 // const Components = require('unplugin-vue-components/webpack')
 // import ElementPlus from 'unplugin-element-plus/webpack'
@@ -59,36 +60,20 @@ const getStyleLoaders = (preload) => {
             loader: 'style-resources-loader',
             options: {
                 patterns: [
-                    path.resolve(__dirname,"../src/styles/variables.scss")
+                    path.resolve(__dirname, "../src/styles/variables.scss")
                 ]
             }
         } : false
 
     ].filter(Boolean);
 }
-
 module.exports = {
     entry: "./src/main.js",
     output: {
-        path: iSProduction ? path.resolve(__dirname, "../dist") : undefined,
-        filename: iSProduction ? "static/js/[name].[contenthash:10].js" : "static/js/[name].js",
-        chunkFilename: iSProduction ? "static/js/[name].[contenthash:10].chunk.js" : "static/js/[name].chunk.js",
         assetModuleFilename: "static/media/[hash:10][ext][query]",
         clean: true,
     },
-    devServer: {
-        host: "localhost",
-        port: 3000,
-        open: true,
-        hot: true,
-        historyApiFallback: true,//解决前端刷新404问题
-        allowedHosts: [
-            'host.com',
-            'subdomain.host.com',
-            'subdomain2.host.com',
-            'host2.com',
-         ],
-    },
+    devServer: devServerConfig,
     module: {
         rules: [
             //处理css
@@ -103,10 +88,6 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/,
                 use: getStyleLoaders("sass-loader"),
-            },
-            {
-                test: /\.styl$/,
-                use: getStyleLoaders("stylus-loader"),
             },
             //处理图片
             {
@@ -158,24 +139,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "../public/index.html")
         }),
-        iSProduction && new MiniCssExtractPlugin({
-            filename: 'static/css/[name].[contenthash:10].css',
-            chunkFilename: "static/css/[name].[contenthash:10].chunk.css",
-        }),
-        iSProduction && new CopyPlugin({
-            patterns: [
-                {
-                    from: path.resolve(__dirname, "../public"),
-                    to: path.resolve(__dirname, "../dist"),
-                    globOptions: {
-                        // dot: true,
-                        // gitignore: true,
-                        //忽略复制index.html 文件过去
-                        ignore: ["**/index.html"],
-                    },
-                },
-            ],
-        }),
         new VueLoaderPlugin(),
         //cross-env 定义的环境变量给打包工具使用的
         // DefinePlugin 定义的变量是给源代码使用的，解决vue3页面警告问题
@@ -183,15 +146,39 @@ module.exports = {
             __VUE_OPTIONS_API__: true,
             __VUE_PROD_DEVTOOLS__: false,
         }),
+        new WebpackBar(
+            // {
+            //     start(context) {
+            //       // Called when (re)compile is started
+            //     },
+            //     change(context) {
+            //       // Called when a file changed on watch mode
+            //     },
+            //     update(context) {
+            //       // Called after each progress update
+            //     },
+            //     done(context) {
+            //       // Called when compile finished
+            //     },
+            //     progress(context) {
+            //       // Called when build progress updated
+            //     },
+            //     allDone(context) {
+            //       // Called when _all_ compiles finished
+            //     },
+            //     beforeAllDone(context) {
+            //     },
+            //     afterAllDone(context) {
+            //     },
+            //    }
+        )
         // Components({
         //     resolvers: [ElementPlusResolver()],
         //   }),
         // ElementPlus({
         //     useSource: true,
         // }),
-    ].filter(Boolean),
-    mode: iSProduction ? "production" : "development",
-    devtool: iSProduction ? "source-map" : "cheap-module-source-map",
+    ],
     optimization: {
         //代码分割配置 
         splitChunks: {
@@ -273,5 +260,8 @@ module.exports = {
             "@": path.resolve(__dirname, "../src")
         }
     },
+    // css:{
+    //     requireModuleExtension: false//去掉 less sass 变量导出必须带module后缀
+    // },
     performance: false, // 关闭性能分析，提升打包速度
 }

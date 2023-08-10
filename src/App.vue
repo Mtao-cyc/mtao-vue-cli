@@ -14,7 +14,7 @@
   </div>
     <router-link to="/home">home</router-link><br/>
     <router-link to="/about">about</router-link>
-    <router-view></router-view>
+    <router-view></router-view>666
 </template>
 
 <script setup>
